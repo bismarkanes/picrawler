@@ -1,5 +1,5 @@
 """
-CAWLER SCRIPT
+CRAWLER SCRIPT
 """
 
 from __future__ import print_function
@@ -10,7 +10,7 @@ except ImportError:
     from urlparse import urlparse
 import json
 import datetime
-# import time
+import time
 from lxml import html
 import requests
 
@@ -149,11 +149,21 @@ def getCompanyProfile(htmlContent, profile_list):
         profile_list.append(profile)
 
 
+def updateCompanyLinks(current_links, new_links):
+    """
+    Update company links
+    """
+    for new_link in new_links:
+        if new_link not in current_links:
+            current_links.append(new_link)
+
+
 """
 MAIN PROGRAM STARTS HERE
 """
 
 target_url = 'http://vtown.vn/en/category8/genre701.html'
+USE_DELAY = False
 company_list = []
 company_links = []
 company_profiles = []
@@ -164,21 +174,23 @@ html_content = get_site_content(target_url)
 # get company links
 get_company_links(html_content, company_links, base_domain_url)
 
-if len(company_links) > 0:
-    target_url = company_links.pop()
-else:
-    target_url = ''
-
 # get company list from the links
-while target_url != '':
-    # time.sleep(2)
+ncount=0
+while ncount < len(company_links):
+    if USE_DELAY:
+        time.sleep(1)
+    target_url = company_links[ncount]
     print('CompanyList: GET', target_url)
     html_content = get_site_content(target_url)
     get_company_list(html_content, company_list, base_domain_url)
     if len(company_links) > 0:
-        target_url = company_links.pop()
+        cur_company_links = []
+        get_company_links(html_content, cur_company_links, base_domain_url)
+        updateCompanyLinks(company_links, cur_company_links)
     else:
         target_url = ''
+
+    ncount += 1
 
 # getting company profile
 for company in company_list:
@@ -186,7 +198,8 @@ for company in company_list:
     print('CompanyProfile: GET', url)
     html_content = get_site_content(url)
     getCompanyProfile(html_content, company_profiles)
-    # time.sleep(1)
+    if USE_DELAY:
+        time.sleep(1)
 
 # write to file
 with open('./company_index.json', 'w') as outfile:
