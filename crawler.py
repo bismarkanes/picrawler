@@ -132,11 +132,38 @@ def getCompanyProfile(htmlContent, profile_list):
         else:
             company_phone = ''
 
+        company_fax = inner_company_profile.xpath('//table[contains(@class, "tbl-com-detail") and contains(@class, "company_basic_info_table")]//td//span[contains(@itemprop, "faxNumber")]')
+        if len(company_fax) > 0:
+            company_fax = company_fax[0].text_content()
+        else:
+            company_fax = ''
+
         company_website = inner_company_profile.xpath('//table[contains(@class, "tbl-com-detail") and contains(@class, "company_basic_info_table")]//td//a[contains(@itemprop, "url")]')
         if len(company_website) > 0:
             company_website = company_website[0].get('href')
         else:
             company_website = ''
+
+        business = inner_company_profile.xpath('//table[contains(@class, "tbl-com-detail") and contains(@class, "company_basic_info_table")]//th[contains(text(), "Business")]/following-sibling::td')
+        if len(business) > 0:
+            business = business[0].text_content().strip()
+        else:
+            business = ''
+
+        business_form = inner_company_profile.xpath('//table[contains(@class, "tbl-com-detail") and contains(@class, "company_basic_info_table")]//th[contains(text(), "Business Form")]/following-sibling::td')
+        if len(business_form) > 0:
+            business_form = business_form[0].text_content().strip()
+        else:
+            business_form = ''
+
+        industry = inner_company_profile.xpath('//div[contains(@class, "genre-com-detail") and contains(@class, "clearfix")]/ul/li/a')
+        if len(industry) > 0:
+            alist = []
+            for in_item in industry:
+                alist.append(in_item.text_content().strip())
+                industry = ','.join(alist)
+        else:
+            industry = ''
 
         profile = {
             "company_name": company_name,
@@ -144,7 +171,11 @@ def getCompanyProfile(htmlContent, profile_list):
             "company_logo": company_logo,
             "company_street_address": company_address,
             "company_phone": company_phone,
-            "company_website": company_website
+            "company_fax": company_fax,
+            "company_website": company_website,
+            "business_form": business_form,
+            "business": business,
+            "industry": industry
         }
         profile_list.append(profile)
 
